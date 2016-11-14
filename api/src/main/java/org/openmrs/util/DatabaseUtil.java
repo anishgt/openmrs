@@ -33,6 +33,8 @@ public class DatabaseUtil {
 	
 	private final static Log log = LogFactory.getLog(DatabaseUtil.class);
 	
+	private final static HashSet<String> validDrivers = new HashSet<String>();
+	
 	/**
 	 * Load the jdbc driver class for the database which is specified by the connectionUrl parameter <br/>
 	 * This is only needed when loading up a jdbc connection manually for the first time. This is
@@ -64,29 +66,39 @@ public class DatabaseUtil {
 	public final static String ORDER_ENTRY_UPGRADE_SETTINGS_FILENAME = "order_entry_upgrade_settings.txt";
 	
 	public static String loadDatabaseDriver(String connectionUrl, String connectionDriver) throws ClassNotFoundException {
-		if (StringUtils.hasText(connectionDriver)) {
+		if (validDrivers.isEmpty()) {
+			validDrivers.add("com.mysql.jdbc.Driver");
+			validDrivers.add("org.hsqldb.jdbcDriver");
+			validDrivers.add("org.postgresql.Driver");
+			validDrivers.add("oracle.jdbc.driver.OracleDriver");
+			validDrivers.add("net.sourceforge.jtds.jdbc.Driver");
+			validDrivers.add("com.microsoft.jdbc.sqlserver.SQLServerDriver");
+		}
+		if (StringUtils.hasText(connectionDriver) && validDrivers.contains(connectionDriver)) {
 			Class.forName(connectionDriver);
 			log.debug("set user defined Database driver class: " + connectionDriver);
+			
+		} else if (connectionUrl.contains("mysql")) {
+			Class.forName("com.mysql.jdbc.Driver");
+			connectionDriver = "com.mysql.jdbc.Driver";
+		} else if (connectionUrl.contains("hsqldb")) {
+			Class.forName("org.hsqldb.jdbcDriver");
+			connectionDriver = "org.hsqldb.jdbcDriver";
+		} else if (connectionUrl.contains("postgresql")) {
+			Class.forName("org.postgresql.Driver");
+			connectionDriver = "org.postgresql.Driver";
+		} else if (connectionUrl.contains("oracle")) {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			connectionDriver = "oracle.jdbc.driver.OracleDriver";
+		} else if (connectionUrl.contains("jtds")) {
+			Class.forName("net.sourceforge.jtds.jdbc.Driver");
+			connectionDriver = "net.sourceforge.jtds.jdbc.Driver";
+		} else if (connectionUrl.contains("sqlserver")) {
+			Class.forName("com.microsoft.jdbc.sqlserver.SQLServerDriver");
+			connectionDriver = "com.microsoft.jdbc.sqlserver.SQLServerDriver";
 		} else {
-			if (connectionUrl.contains("mysql")) {
-				Class.forName("com.mysql.jdbc.Driver");
-				connectionDriver = "com.mysql.jdbc.Driver";
-			} else if (connectionUrl.contains("hsqldb")) {
-				Class.forName("org.hsqldb.jdbcDriver");
-				connectionDriver = "org.hsqldb.jdbcDriver";
-			} else if (connectionUrl.contains("postgresql")) {
-				Class.forName("org.postgresql.Driver");
-				connectionDriver = "org.postgresql.Driver";
-			} else if (connectionUrl.contains("oracle")) {
-				Class.forName("oracle.jdbc.driver.OracleDriver");
-				connectionDriver = "oracle.jdbc.driver.OracleDriver";
-			} else if (connectionUrl.contains("jtds")) {
-				Class.forName("net.sourceforge.jtds.jdbc.Driver");
-				connectionDriver = "net.sourceforge.jtds.jdbc.Driver";
-			} else if (connectionUrl.contains("sqlserver")) {
-				Class.forName("com.microsoft.jdbc.sqlserver.SQLServerDriver");
-				connectionDriver = "com.microsoft.jdbc.sqlserver.SQLServerDriver";
-			}
+			log.info("Did not find database driver: " + connectionDriver);
+			return connectionDriver;
 		}
 		log.info("Set database driver class as " + connectionDriver);
 		return connectionDriver;

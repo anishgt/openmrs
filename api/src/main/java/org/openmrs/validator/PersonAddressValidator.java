@@ -10,6 +10,7 @@
 package org.openmrs.validator;
 
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -58,6 +59,14 @@ public class PersonAddressValidator implements Validator {
 		}
 		
 		PersonAddress personAddress = (PersonAddress) object;
+		String patternString = "[-,:\\w\\s]+";
+		//Pattern xssPrevention = new Pattern();
+		
+		if (!Pattern.matches(patternString, personAddress.toString())) {
+			log.error(this.getClass().getName() + ": Address:" + personAddress.toString());
+			errors.rejectValue("address1", "Invalid characters found in address. "
+			        + "Only alphanumeric, space and hyphens allowed");
+		}
 		
 		//resolve a shorter name to display along with the error message
 		String addressString = null;

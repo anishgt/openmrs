@@ -326,7 +326,8 @@ public class HibernateContextDAO implements ContextDAO {
 	 * @see org.openmrs.api.context.Context#shutdown()
 	 */
 	public void shutdown() {
-		if (log.isInfoEnabled()) {
+		//if (log.isInfoEnabled()) {
+		if (log.isDebugEnabled()) {
 			showUsageStatistics();
 		}
 		
@@ -351,7 +352,7 @@ public class HibernateContextDAO implements ContextDAO {
 	/**
 	 * Convenience method to print out the hibernate cache usage stats to the log
 	 */
-	private void showUsageStatistics() {
+	/*private void showUsageStatistics() {
 		if (sessionFactory.getStatistics().isStatisticsEnabled()) {
 			log.debug("Getting query statistics: ");
 			Statistics stats = sessionFactory.getStatistics();
@@ -364,6 +365,23 @@ public class HibernateContextDAO implements ContextDAO {
 				log.info("Execution Count : " + qstats.getExecutionCount());
 				log.info("Average time    : " + qstats.getExecutionAvgTime());
 				log.info("Row Count       : " + qstats.getExecutionRowCount());
+			}
+		}
+	}*/
+
+	private void showUsageStatistics() {
+		if (sessionFactory.getStatistics().isStatisticsEnabled()) {
+			log.debug("Getting query statistics: ");
+			Statistics stats = sessionFactory.getStatistics();
+			for (String query : stats.getQueries()) {
+				log.debug("QUERY: " + query);
+				QueryStatistics qstats = stats.getQueryStatistics(query);
+				log.debug("Cache Hit Count : " + qstats.getCacheHitCount());
+				log.debug("Cache Miss Count: " + qstats.getCacheMissCount());
+				log.debug("Cache Put Count : " + qstats.getCachePutCount());
+				log.debug("Execution Count : " + qstats.getExecutionCount());
+				log.debug("Average time    : " + qstats.getExecutionAvgTime());
+				log.debug("Row Count       : " + qstats.getExecutionRowCount());
 			}
 		}
 	}

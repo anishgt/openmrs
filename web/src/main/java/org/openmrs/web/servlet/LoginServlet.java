@@ -76,10 +76,10 @@ public class LoginServlet extends HttpServlet {
 		
 		boolean lockedOut = false;
 		// look up the allowed # of attempts per IP
-		Integer allowedLockoutAttempts = 100;
+		Integer allowedLockoutAttempts = 10;
 		
 		String allowedLockoutAttemptsGP = Context.getAdministrationService().getGlobalProperty(
-		    GP_ALLOWED_LOGIN_ATTEMPTS_PER_IP, "100");
+		    GP_ALLOWED_LOGIN_ATTEMPTS_PER_IP, "10");
 		try {
 			allowedLockoutAttempts = Integer.valueOf(allowedLockoutAttemptsGP.trim());
 		}
