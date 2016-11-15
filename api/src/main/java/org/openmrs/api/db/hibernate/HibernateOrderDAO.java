@@ -47,6 +47,12 @@ import org.openmrs.api.db.OrderDAO;
 import org.openmrs.util.DatabaseUtil;
 import org.openmrs.util.OpenmrsConstants;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.Vector;
+import java.sql.Connection;
+
 /**
  * This class should not be used directly. This is just a common implementation of the OrderDAO that
  * is used by the OrderService. This class is injected by spring into the desired OrderService
@@ -181,15 +187,41 @@ public class HibernateOrderDAO implements OrderDAO {
 	
 	@Override
 	public List<List<Object>> getOrderFromDatabase(Order order, boolean isOrderADrugOrder) throws APIException {
-		String query = "SELECT patient_id, care_setting, concept_id FROM orders WHERE order_id =";
+		//String query = "SELECT patient_id, care_setting, concept_id FROM orders WHERE order_id =";
+		List<List<Object>> results = new Vector<List<Object>>();
+		String query = "SELECT patient_id, care_setting, concept_id FROM orders WHERE order_id = ?";
 		
 		if (isOrderADrugOrder) {
+			/*query = "SELECT o.patient_id, o.care_setting, o.concept_id, d.drug_inventory_id "
+			        + "FROM orders o, drug_order d WHERE o.order_id = d.order_id AND o.order_id =";*/
 			query = "SELECT o.patient_id, o.care_setting, o.concept_id, d.drug_inventory_id "
-			        + "FROM orders o, drug_order d WHERE o.order_id = d.order_id AND o.order_id =";
+			        + "FROM orders o, drug_order d WHERE o.order_id = d.order_id AND o.order_id = ?";
 		}
-		List<List<Object>> lists = DatabaseUtil.executeSQL(sessionFactory.getCurrentSession().connection(), query
-		        + order.getOrderId(), true);
-		return lists;
+		Connection connection = sessionFactory.getCurrentSession().connection();
+		try {
+			PreparedStatement ps = connection.prepareStatement(query);
+			ps.setInt(1, order.getOrderId());
+			
+			ResultSet rs = ps.executeQuery();
+			
+			ResultSetMetaData rmd = rs.getMetaData();
+			int columnCount = rmd.getColumnCount();
+			while (rs.next()) {
+				List<Object> rowObjects = new Vector<Object>();
+				for (int x = 1; x <= columnCount; x++) {
+					rowObjects.add(rs.getObject(x));
+				}
+				results.add(rowObjects);
+			}
+		}
+		catch (Exception e) {
+			throw new APIException();
+		}
+		
+		//List<List<Object>> lists = DatabaseUtil.executeSQL(sessionFactory.getCurrentSession().connection(), query
+		//        + order.getOrderId(), true);
+		//return lists;
+		return results;
 	}
 	
 	/**
